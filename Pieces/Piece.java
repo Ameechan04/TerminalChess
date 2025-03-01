@@ -4,7 +4,7 @@ import static java.lang.Math.min;
 
 public class Piece {
 
-    static final public int None = 0;
+    static final public int NONE = 0;
     static final public int KING = 1;
     static final public int PAWN = 2;
     static final public int KNIGHT = 3;
@@ -19,7 +19,8 @@ public class Piece {
     public static int[] directionOffsets = { 8, -8, -1, 1, 7, -7, 9, -9};
     public static int[][] numSquaresToEdge;
 
-    public static void precomputerMoveDate(){
+    public static void precomputerMoveData(){
+        numSquaresToEdge = new int[64][8];
         for (int file = 0; file < 8; file++) {
             for (int rank = 0; rank < 8; rank++) {
 
@@ -47,9 +48,11 @@ public class Piece {
         }
     }
 
+    /*check if the piece colour matches the specified colour */
     public static boolean isColour(int piece, int colour) {
-        return (piece & (WHITE | BLACK)) == colour;
+        return (piece & (WHITE | BLACK)) != 0 && (piece & (WHITE | BLACK)) == colour;
     }
+
 
     // Method to check if a piece is of a certain type
     public static boolean isType(int piece, int type) {
@@ -65,7 +68,7 @@ public class Piece {
         int pieceType = fenPiece & 0x7;  // 0x7 is binary 111, masking the lower 3 bits
 
         // Determine the piece colour by checking if the higher bits are set
-        String colour = (fenPiece & Piece.WHITE) != 0 ? "WHITE" : "BLACK";
+        String colour = (fenPiece == 0) ? "EMPTY" : ((fenPiece & Piece.WHITE) != 0 ? "WHITE" : "BLACK");
 
         // Determine the piece name
         String pieceName = "";
@@ -96,5 +99,8 @@ public class Piece {
         return colour + " " + pieceName;
     }
 
+    public static String getPieceColour(int piece) {
+        return (piece == 0) ? "EMPTY" : ((piece & Piece.WHITE) != 0 ? "WHITE" : "BLACK");
+    }
 
 }

@@ -7,4 +7,13 @@ public class Move {
         this.startSquare = startSquare;
         this.targetSquare = targetSquare;
     }
+
+    public int getStartSquare() {
+        return startSquare;
+    }
+
+    public int getTargetSquare() {
+        return targetSquare;
+    }
+
 }

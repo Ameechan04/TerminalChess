@@ -47,29 +47,31 @@ public class Main {
         b.printBoard();
         friendlyColour = b.colourToMove;
         boolean finished = false;
-        boolean valid_move = false;
+        boolean valid_move;
         int counter = 0;
+        List<Move> moves = new ArrayList<>();
         while (!finished) {
+            valid_move = false;
             System.out.println();
             System.out.println( playerNumToString(friendlyColour)+ "'s turn:");
-            int newSquare;
-            int currentSquare;
+            int newSquare ;
+            int currentSquare ;
+
+
             do {
                 currentSquare = UserInput.getValidSquareInput(friendlyColour);
                 int piece = b.square[currentSquare];
                 System.out.println("Selected Piece: " + Piece.FENtoString(piece));
                 newSquare = UserInput.getValidMoveSquare(currentSquare, piece, friendlyColour, opponentColour);
-                valid_move = true;
+                System.out.println(newSquare);
+                if (newSquare != -1) {
+                    valid_move = true;
+                }
             } while (!valid_move);
+            b.updateBoard(currentSquare, newSquare);
+            b.printBoard();
 
-            //update board
-            {
-                //System.out.println("got: " + newSquare);
-                b.updateBoard(currentSquare, newSquare);
-                b.printBoard();
-            }
-
-             b.switchTurn();  // Assuming colourToMove is either Piece.White or Piece.Black
+            b.switchTurn();  // Assuming colourToMove is either Piece.White or Piece.Black
             friendlyColour = b.colourToMove;
             opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
 

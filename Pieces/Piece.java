@@ -103,4 +103,32 @@ public class Piece {
         return (piece == 0) ? "EMPTY" : ((piece & Piece.WHITE) != 0 ? "WHITE" : "BLACK");
     }
 
+
+
+    // **Added isPawn, isKnight, isBishop, isRook, isQueen, isKing functions**
+    public static boolean isPawn(int piece) {
+        return isType(piece, PAWN);
+    }
+
+    public static boolean isKnight(int piece) {
+        return isType(piece, KNIGHT);
+    }
+
+    public static boolean isBishop(int piece) {
+        return isType(piece, BISHOP);
+    }
+
+    public static boolean isRook(int piece) {
+        return isType(piece, ROOK);
+    }
+
+    public static boolean isQueen(int piece) {
+        return isType(piece, QUEEN);
+    }
+
+    public static boolean isKing(int piece) {
+        return isType(piece, KING);
+    }
+
+
 }

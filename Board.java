@@ -9,6 +9,7 @@ public class Board {
         Piece.precomputerMoveData();
         colourToMove = Piece.WHITE;
         String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+       // String fen = "rnbqkbnr/8/8/8/8/8/8/RNBQKBNR w KQkq - 0 1";
         parseFen1DArray(fen);
     }
 
@@ -18,6 +19,15 @@ public class Board {
             int piece = square[oldSquare];
             square[oldSquare] = Piece.NONE;  // Clear the old square
             square[newSquare] = piece;       // Place the piece on the new square
+
+
+    }
+
+    public void updateBoard(Move move) {
+
+        int piece = square[move.startSquare];
+        square[move.startSquare] = Piece.NONE;  // Clear the old square
+        square[move.targetSquare] = piece;       // Place the piece on the new square
 
 
     }
@@ -57,6 +67,31 @@ public class Board {
             System.out.println(); // Newline after each row
         }
     }
+
+    public void printBoardDebug() {
+        // Print the column labels (A to H)
+        System.out.print("   ");
+        for (char c = 'A'; c <= 'H'; c++) {
+            System.out.print(c + " ");
+        }
+        System.out.println();
+
+        // Iterate through the 1D array in reverse to match board from rank 8 to 1
+        int counter = 1;
+        for (int row = 7; row >= 0; row--) {
+            // Print the row number (1 to 8)
+            System.out.print((row + 1) + "  ");
+
+            // Print the pieces for the current row
+            for (int col = 0; col < 8; col++) {
+                int squareIndex = row * 8 + col;  // Calculate the 1D index for the current square
+                System.out.print(FENtoString(square[squareIndex]) + squareIndex + " ");
+            }
+
+            System.out.println(); // Newline after each row
+        }
+    }
+
 
     public String FENtoString(int piece) {
         // If the piece is None, return a dot to represent an empty square
@@ -198,5 +233,25 @@ public class Board {
             default:
                 return Piece.NONE;
         }
+    }
+
+    public int getKingSquare(int friendlyColour) {
+        for (int i = 0; i < square.length; i++) {
+            int piece = square[i];
+
+            // Check if the piece is a king AND belongs to the correct colour
+            if ((piece & 0b111) == Piece.KING && Piece.isColour(piece, friendlyColour)) {
+                return i;
+            }
+        }
+        return -1; // Return -1 if the king is not found
+    }
+
+    public void unmakeMove(Move move) {
+        int piece = square[move.targetSquare];
+        int capturePiece = move.getPieceCaptured();
+
+        square[move.startSquare] = piece;
+        square[move.targetSquare] = capturePiece;
     }
 }

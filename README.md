@@ -5,7 +5,7 @@ A game of Chess ran in the terminal for the vintage 80s aesthetic, with peer-to-
 
 
 # Behind the Scenes:
-# The Board is Stored in a 1D Array
+## The Board is Stored in a 1D Array
 The entire board is stored in a 1D array from 0 to 63. This makes the maths significantly easier to calculate.
 To check if a move results in a piece being off the board, simply add the offset and see if the resulting square is < 0 or > 63.
 
@@ -23,19 +23,19 @@ public static boolean isType(int piece, int type) {
         return (piece & 0x7) == type; 
     }
 
-# Offsets: How do these work?
+## Offsets: How do these work?
 
 Let us consider the case of a pawn whose offsets to attack diagonally are {7, 9} or {-7, -9}.
+<br>
+  A B C D E F G H<br>
+3 . . . . . . . .<br>
+2 . . . . . . . .<br>
+1 . . P . . . . .<br>
 
-  A B C D E F G H 
-3 . . . . . . . .
-2 . . . . . . . .
-1 . . P . . . . .
-
-in the Array this looks like (indexes):
-16 17 18 19 20 21 22 23 
-8  9  10 11 12 13 14 15
-0  1  P  3  4  5  6  7
+in the Array this looks like (indexes):<br>
+16 17 18 19 20 21 22 23 <br>
+8  9  10 11 12 13 14 15 <br>
+0  1  P  3  4  5  6  7  <br>
 
 Pawn on C1 can attack diagonally onto B2 or D2. In the board array these are squares 9 and 11. Pawn occupies square to, which with the offsets makes the magic numbers
 9 and 11. This principle is applied to all the pieces. The King moves in all directions so the offsets are: {-9, -8, -7, -1, 1, 7, 8, 9}

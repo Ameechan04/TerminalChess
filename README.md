@@ -2,6 +2,22 @@
 A game of Chess ran in the terminal for the vintage 80s aesthetic, with peer-to-peer multiplayer to show who is really the true chess champion.
 
 # How to Run:
+## 1. Download TerminalChess.jar
+Download the file onto your computer.
+
+## 2. Download launch.bat 
+Download the file and place it in the same location as the .jar file.
+
+## 3. Double Click launch.bat
+And you should be good to go.
+
+## Alternate Method:
+If the terminal doesn't support colour or you experience any other technical issue follow these steps to pull the entire project and launch inside IntelliJ or Eclipse IDE.
+
+## 1. Clone Project:
+Click on code and copy and paste the link. On your IDE click: new project > from version control > and paste the link.
+
+## 2. Inside the IDE simply click the green run arrow
 
 
 # Behind the Scenes:

@@ -9,12 +9,11 @@ import static Pieces.Piece.directionOffsets;
 
 public class UserInput {
     private static List<Move> moves;
-    static Board b = Main.b;
     private static Scanner scanner = new Scanner(System.in);
 
     // Method to prompt the user for a valid square (0-63)
     //Only checks if on the board
-    public static int getValidSquareInput(int friendlyColour) {
+    public static int getValidSquareInput(int friendlyColour, Board b) {
         int square = -1;
         boolean validColour = false;
         while (square < 0 || square >= 64 || !validColour) {
@@ -26,7 +25,7 @@ public class UserInput {
                     System.out.println("Invalid square. Please enter a valid square (e.g., 'a2', 'h5').");
                 }
 
-                validColour = isCorrectColour(friendlyColour, square);
+                validColour = isCorrectColour(friendlyColour, square, b);
                 if (!validColour) {
                     System.out.println("Invalid square. Must select your own colour!");
                 }
@@ -79,17 +78,23 @@ public class UserInput {
 
 
     // Prompts for a valid target square and checks that the move is legal
-    public static int getValidMoveSquare(int currentSquare, int piece, int friendlyColour, int opponentColour) {
-        List<Move> validMoves = generateValidMoves(currentSquare, piece, friendlyColour);
+    public static int getValidMoveSquare(int currentSquare, int piece, int friendlyColour, int opponentColour, Board b) {
+        System.out.println("TESTING PARAM B: " + b.square.length);
+        List<Move> validMoves = generateValidMoves(currentSquare, piece, friendlyColour, b);
+
 
         // If there are no valid moves for the selected piece, prompt the user to select another piece
         if (validMoves.isEmpty()) {
             System.out.println("No valid moves available for this piece. Please select another piece.");
             return -1;  // Indicating that no move was made
+        } else {
+            for (Move m: validMoves) {
+                m.printMove();
+            }
         }
 
         int targetSquare = -1;
-        while (targetSquare < 0 || targetSquare >= 64 || !isValidMove(currentSquare, targetSquare, piece, friendlyColour)) {
+        while (targetSquare < 0 || targetSquare >= 64 || !isValidMove(currentSquare, targetSquare, piece, friendlyColour, b)) {
             System.out.println("You have selected piece " + Piece.FENtoString(piece));
             System.out.println("Enter the target square for your move (e.g., 'a3', 'h6'):");
             String input = scanner.nextLine();
@@ -106,17 +111,22 @@ public class UserInput {
         return targetSquare;
     }
 
-    public static boolean isCorrectColour(int friendlyColour, int boardSquare) {
+    public static boolean isCorrectColour(int friendlyColour, int boardSquare, Board b) {
         //if colour matches the players colour
         int piece = b.square[boardSquare];
         return Piece.isColour(piece, friendlyColour);
     }
 
     // Validates if the move is allowed for the piece (based on piece type, colour, etc.)
-    private static boolean isValidMove(int currentSquare, int targetSquare, int piece, int friendlyColour) {
+    private static boolean isValidMove(int currentSquare, int targetSquare, int piece, int friendlyColour, Board b) {
         // You can add piece-specific move validation logic here based on piece type (e.g., pawn, rook, knight)
         // For simplicity, we'll assume the piece is valid if it's of the correct colour and the target square is empty or contains an opponent's piece.
         moves = new ArrayList<>();
+
+        if (b == null) {
+            System.out.println("NULL ARRAY");
+        }
+        System.out.println(b.square.length);
         int pieceOnTargetSquare = b.square[targetSquare];
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
         // Ensure the piece belongs to the correct player
@@ -129,16 +139,16 @@ public class UserInput {
             int pieceType = piece & 0b111;
             switch (pieceType) {
                 case Piece.PAWN:
-                    moves = generatePawnMoves(currentSquare,piece,friendlyColour,opponentColour);
+                    moves = generatePawnMoves(currentSquare,piece,friendlyColour,opponentColour, b);
                     break;
                 case Piece.KNIGHT:
-                    moves = generateKnightMoves(currentSquare,piece,friendlyColour,opponentColour);
+                    moves = generateKnightMoves(currentSquare,piece,friendlyColour,opponentColour, b);
                     break;
                 case Piece.BISHOP, Piece.ROOK, Piece.QUEEN:
-                    moves = generateSlidingMoves(currentSquare,piece,friendlyColour,opponentColour);
+                    moves = generateSlidingMoves(currentSquare,piece,friendlyColour,opponentColour, b);
                     break;
                 case Piece.KING:
-                    moves = generateKingMoves(currentSquare,piece,friendlyColour,opponentColour);
+                    moves = generateKingMoves(currentSquare,piece,friendlyColour,opponentColour, b);
                     break;
                 default:
                     System.out.println("Unknown piece type.");
@@ -168,7 +178,7 @@ public class UserInput {
         }
     }
 
-    public static List<Move> generateKingMoves(int startSquare, int piece, int friendlyColour, int opponentColour) {
+    public static List<Move> generateKingMoves(int startSquare, int piece, int friendlyColour, int opponentColour, Board b) {
         List<Move> moves = new ArrayList<>();
         int[] kingOffsets = {-9, -8, -7, -1, 1, 7, 8, 9};
 
@@ -192,7 +202,7 @@ public class UserInput {
                         Move potentialMove = new Move(startSquare, targetSquare, pieceOnTargetSquare);
 
                         // Check if the move results in a check for the king
-                        if (!CheckIfMoveResultsInCheck(potentialMove, friendlyColour)) {
+                        if (!CheckIfMoveResultsInCheck(potentialMove, friendlyColour, b)) {
                             moves.add(potentialMove);
                         }
                     }
@@ -204,7 +214,7 @@ public class UserInput {
 
 
 
-    public static List<Move> generateKnightMoves(int startSquare, int piece, int friendlyColour, int opponentColour) {
+    public static List<Move> generateKnightMoves(int startSquare, int piece, int friendlyColour, int opponentColour, Board b) {
         moves = new ArrayList<>();
 
         // List of all possible knight move offsets (8 possible L-shaped moves)
@@ -254,7 +264,7 @@ public class UserInput {
 
 
 
-    public static List<Move> generatePawnMoves(int startSquare, int piece, int friendlyColour, int opponentColour) {
+    public static List<Move> generatePawnMoves(int startSquare, int piece, int friendlyColour, int opponentColour, Board b) {
         moves = new ArrayList<>();
         int direction = (Piece.isColour(piece, Piece.WHITE)) ? 1 : -1; // White moves up (1), Black moves down (-1)
 
@@ -286,7 +296,11 @@ public class UserInput {
         for (int offset : captureOffsets) {
             int captureSquare = startSquare + offset;
             if (captureSquare >= 0 && captureSquare < 64) {
+
+                //add check for if startSquare is first or last column cannot wrap around board
                 int pieceOnCaptureSquare = b.square[captureSquare];
+                //System.out.println("Capture Squares: " + captureSquare);
+                //System.out.println("Piece on them: "+ b.square[captureSquare]);
                 if (pieceOnCaptureSquare != Piece.NONE && Piece.isColour(pieceOnCaptureSquare, opponentColour)) {
                     moves.add(new Move(startSquare, captureSquare, pieceOnCaptureSquare));  // Capture opponent's piece
                 }
@@ -332,7 +346,7 @@ public class UserInput {
         return moves;
     }
 
-    public static List<Move> generateSlidingMoves(int startSquare, int piece, int friendlyColour, int opponentColour) {
+    public static List<Move> generateSlidingMoves(int startSquare, int piece, int friendlyColour, int opponentColour, Board b) {
         int startDirIndex = (Piece.isType(piece, Piece.BISHOP)) ? 4 : 0;
         int endDirIndex = (Piece.isType(piece, Piece.ROOK)) ? 4 : 8;
         moves = new ArrayList<>();
@@ -360,23 +374,23 @@ public class UserInput {
     }
 
 
-    public static List<Move> generateValidMoves(int currentSquare, int piece, int friendlyColour) {
+    public static List<Move> generateValidMoves(int currentSquare, int piece, int friendlyColour, Board b) {
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
         List<Move> moves = new ArrayList<>();
 
         int pieceType = piece & 0b111;
         switch (pieceType) {
             case Piece.PAWN:
-                moves = generatePawnMoves(currentSquare, piece, friendlyColour, opponentColour);
+                moves = generatePawnMoves(currentSquare, piece, friendlyColour, opponentColour, b);
                 break;
             case Piece.KNIGHT:
-                moves = generateKnightMoves(currentSquare, piece, friendlyColour, opponentColour);
+                moves = generateKnightMoves(currentSquare, piece, friendlyColour, opponentColour, b);
                 break;
             case Piece.BISHOP, Piece.ROOK, Piece.QUEEN:
-                moves = generateSlidingMoves(currentSquare, piece, friendlyColour, opponentColour);
+                moves = generateSlidingMoves(currentSquare, piece, friendlyColour, opponentColour, b);
                 break;
             case Piece.KING:
-                moves = generateKingMoves(currentSquare, piece, friendlyColour, opponentColour);
+                moves = generateKingMoves(currentSquare, piece, friendlyColour, opponentColour, b);
                 break;
             default:
                 System.out.println("Unknown piece type.");
@@ -385,7 +399,7 @@ public class UserInput {
         return moves;
     }
 
-    public static List<Move> generateAllMoves(int friendlyColour) {
+    public static List<Move> generateAllMoves(int friendlyColour, Board b) {
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
         List<Move> legalMoves = new ArrayList<>();
 
@@ -399,16 +413,16 @@ public class UserInput {
 
                 switch (pieceType) {
                     case Piece.PAWN:
-                        legalMoves.addAll(generatePawnMoves(currentSquare, piece, friendlyColour, opponentColour));
+                        legalMoves.addAll(generatePawnMoves(currentSquare, piece, friendlyColour, opponentColour, b));
                         break;
                     case Piece.KNIGHT:
-                        legalMoves.addAll(generateKnightMoves(currentSquare, piece, friendlyColour, opponentColour));
+                        legalMoves.addAll(generateKnightMoves(currentSquare, piece, friendlyColour, opponentColour, b));
                         break;
                     case Piece.BISHOP, Piece.ROOK, Piece.QUEEN:
-                        legalMoves.addAll(generateSlidingMoves(currentSquare, piece, friendlyColour, opponentColour));
+                        legalMoves.addAll(generateSlidingMoves(currentSquare, piece, friendlyColour, opponentColour, b));
                         break;
                     case Piece.KING:
-                        legalMoves.addAll(generateKingMoves(currentSquare, piece, friendlyColour, opponentColour));
+                        legalMoves.addAll(generateKingMoves(currentSquare, piece, friendlyColour, opponentColour, b));
                         break;
                     default:
                         System.out.println("Unknown piece type.");
@@ -420,9 +434,9 @@ public class UserInput {
         return legalMoves;
     }
 
-    public static List<Move> generateLegalMoves (int friendlyColour) {
+    public static List<Move> generateLegalMoves (int friendlyColour,Board b) {
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
-        List<Move> pseudoLegalMoves = generateAllMoves(friendlyColour);
+        List<Move> pseudoLegalMoves = generateAllMoves(friendlyColour, b);
         List<Move> legalMoves = new ArrayList<>();
         int myKingSquare = b.getKingSquare(friendlyColour);
         int enemyKingSquare = b.getKingSquare(opponentColour);
@@ -432,7 +446,7 @@ public class UserInput {
             //moveToVerify.printMove(); System.out.println();
 
             b.updateBoard(moveToVerify);
-            List<Move> opponentResponses  = generateAllMoves(opponentColour);
+            List<Move> opponentResponses  = generateAllMoves(opponentColour, b);
 
             boolean kingCaptured = false;
             for (Move response : opponentResponses) {
@@ -455,8 +469,8 @@ public class UserInput {
 
     //
 
-    public static boolean isGameOver(int friendlyColour, boolean inCheck) {
-        List<Move> legalMoves = generateLegalMoves(friendlyColour);
+    public static boolean isGameOver(int friendlyColour, boolean inCheck, Board b) {
+        List<Move> legalMoves = generateLegalMoves(friendlyColour, b);
 
         if (inCheck) {
             System.out.println("King is in check!");
@@ -473,15 +487,15 @@ public class UserInput {
     }
 
     /*If WHITE: generates all of whites moves that could put the black king in check */
-    public static List<Move> generateMovesThatKillEnemyKing(int friendlyColour){
+    public static List<Move> generateMovesThatKillEnemyKing(int friendlyColour, Board b){
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
-        List<Move> pseudoLegalMoves = generateAllMoves(friendlyColour);
+        List<Move> pseudoLegalMoves = generateAllMoves(friendlyColour, b);
         List<Move> kingCapturingMoves = new ArrayList<>();
         int enemyKingSquare = b.getKingSquare(opponentColour);
 
         for (Move moveToVerify : pseudoLegalMoves) {
             b.updateBoard(moveToVerify);
-            List<Move> opponentResponses  = generateAllMoves(opponentColour);
+            List<Move> opponentResponses  = generateAllMoves(opponentColour, b);
             boolean kingCaptured = false;
             for (Move response : opponentResponses) {
                // System.out.println("/DEB/ Checking move: " + convertSquareToInput(response.getTargetSquare()));
@@ -504,13 +518,13 @@ public class UserInput {
 
     }
 
-    public static List<Move> generateMovesThatResolveCheck(int friendlyColour) {
+    public static List<Move> generateMovesThatResolveCheck(int friendlyColour, Board b) {
         int myKingSquare = b.getKingSquare(friendlyColour);
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
         List<Move> validMoves = new ArrayList<>();
 
         // Generate all possible moves
-        List<Move> pseudoLegalMoves = generateAllMoves(friendlyColour);
+        List<Move> pseudoLegalMoves = generateAllMoves(friendlyColour, b);
 
         // Check if the king is in check and filter moves
         for (Move move : pseudoLegalMoves) {
@@ -518,7 +532,7 @@ public class UserInput {
             b.updateBoard(move);
 
             // Check if the move resolves the check (king is not in check after the move)
-            boolean isInCheck = isKingInCheck(friendlyColour);
+            boolean isInCheck = isKingInCheck(friendlyColour, b);
             if (!isInCheck) {
                 validMoves.add(move);  // Add move if it resolves the check
             }
@@ -530,10 +544,10 @@ public class UserInput {
         return validMoves;
     }
 
-    public static boolean isKingInCheck(int friendlyColour) {
+    public static boolean isKingInCheck(int friendlyColour, Board b) {
         int opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
 
-        List<Move> killinKingMoves = UserInput.generateMovesThatKillEnemyKing(opponentColour);
+        List<Move> killinKingMoves = UserInput.generateMovesThatKillEnemyKing(opponentColour, b);
 
         if (killinKingMoves.isEmpty()) {
             return false;
@@ -543,7 +557,7 @@ public class UserInput {
     }
 
 
-    public static boolean CheckIfMoveResultsInCheck(Move move, int friendlyColour) {
+    public static boolean CheckIfMoveResultsInCheck(Move move, int friendlyColour, Board b) {
         int opponentColour = (friendlyColour == Piece.WHITE) ? Piece.BLACK : Piece.WHITE;
 
         // Simulate the move
@@ -553,7 +567,7 @@ public class UserInput {
         int kingSquare = b.getKingSquare(friendlyColour);
 
         // Check if any opponent piece attacks the king, WITHOUT using generateAllMoves
-        boolean inCheck = isKingAttacked(kingSquare, opponentColour);
+        boolean inCheck = isKingAttacked(kingSquare, opponentColour, b);
 
         // Undo the move
         b.unmakeMove(move);
@@ -561,26 +575,26 @@ public class UserInput {
         return inCheck;
     }
 
-    public static boolean isKingAttacked(int kingSquare, int opponentColour) {
+    public static boolean isKingAttacked(int kingSquare, int opponentColour, Board b) {
         // Check for pawn attacks
-        if (isPawnAttackingKing(kingSquare, opponentColour)) {
+        if (isPawnAttackingKing(kingSquare, opponentColour, b)) {
             return true;
         }
 
         // Check for knight attacks
-        if (isKnightAttackingKing(kingSquare, opponentColour)) {
+        if (isKnightAttackingKing(kingSquare, opponentColour, b)) {
             return true;
         }
 
         // Check for sliding piece attacks (bishops, rooks, queen)
-        if (isSlidingPieceAttackingKing(kingSquare, opponentColour)) {
+        if (isSlidingPieceAttackingKing(kingSquare, opponentColour, b)) {
             return true;
         }
 
         return false;
     }
 
-    public static boolean isPawnAttackingKing(int kingSquare, int opponentColour) {
+    public static boolean isPawnAttackingKing(int kingSquare, int opponentColour, Board b) {
         int direction = (opponentColour == Piece.WHITE) ? -1 : 1; // Opponent pawns move in opposite direction
         int[] pawnAttackOffsets = {direction * 9, direction * 7};
 
@@ -595,7 +609,7 @@ public class UserInput {
         return false;
     }
 
-    public static boolean isKnightAttackingKing(int kingSquare, int opponentColour) {
+    public static boolean isKnightAttackingKing(int kingSquare, int opponentColour, Board b) {
         int[] knightOffsets = {-17, -15, -10, -6, 6, 10, 15, 17};
 
         for (int offset : knightOffsets) {
@@ -609,7 +623,7 @@ public class UserInput {
         return false;
     }
 
-    public static boolean isSlidingPieceAttackingKing(int kingSquare, int opponentColour) {
+    public static boolean isSlidingPieceAttackingKing(int kingSquare, int opponentColour, Board b) {
         int friendlyColour = (opponentColour == WHITE) ? BLACK : WHITE;
 
         int[][] directions = {

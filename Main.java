@@ -83,10 +83,10 @@ public class Main {
             Move move = null;
 
             do {
-                currentSquare = UserInput.getValidSquareInput(friendlyColour);
+                currentSquare = UserInput.getValidSquareInput(friendlyColour, b);
                 piece = b.square[currentSquare];
                 System.out.println("Selected Piece: " + FENtoString(piece));
-                newSquare = UserInput.getValidMoveSquare(currentSquare, piece, friendlyColour, opponentColour);
+                newSquare = UserInput.getValidMoveSquare(currentSquare, piece, friendlyColour, opponentColour, b);
 
                 if (newSquare != -1) {
                     move = new Move(currentSquare, newSquare, b.square[newSquare]);
@@ -129,7 +129,7 @@ public class Main {
             b.switchTurn();
             friendlyColour = b.colourToMove;
             opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
-            List<Move> killinKingMoves = UserInput.generateMovesThatKillEnemyKing(opponentColour);
+            List<Move> killinKingMoves = UserInput.generateMovesThatKillEnemyKing(opponentColour, b);
 
             if (killinKingMoves.isEmpty()) {
                 inCheck = false;
@@ -139,14 +139,14 @@ public class Main {
 
             // Check if the opponent has any legal moves left
             if (inCheck) {
-                resolvingCheckMoves = UserInput.generateMovesThatResolveCheck(friendlyColour);
+                resolvingCheckMoves = UserInput.generateMovesThatResolveCheck(friendlyColour, b);
 
                 if (resolvingCheckMoves.isEmpty()) {
                     System.out.println("CHECKMATE!");
                     finished = true;
                 }
             } else {
-                if (UserInput.generateLegalMoves(friendlyColour).isEmpty()) {
+                if (UserInput.generateLegalMoves(friendlyColour, b).isEmpty()) {
                     System.out.println("STALEMATE!");
                     finished = true;
                 }
@@ -471,8 +471,8 @@ public class Main {
 
     /*Takes in fen state, returns a new fen state */
     public static String multiplayerGame(String fen, int player) {
-        b = new Board(fen);
-        b.printBoard();
+        Board bm = new Board(fen);
+        bm.printBoard();
         friendlyColour = player;
         opponentColour = (friendlyColour == WHITE) ? BLACK : WHITE;
         boolean finished = false;
@@ -480,20 +480,27 @@ public class Main {
         List<Move> resolvingCheckMoves = null;
             valid_move = false;
             System.out.println();
-            System.out.println(playerNumToString(friendlyColour) + "'s turn:");
+        if (friendlyColour == WHITE) {
+            System.out.println(ANSI_RED_BACKGROUND_WHITE_TEXT + playerNumToString(friendlyColour) + "'s turn:" + ANSI_RESET);
+        } else {
+            System.out.println(ANSI_RED_BACKGROUND_BLACK_TEXT + playerNumToString(friendlyColour) + "'s turn:" + ANSI_RESET);
+        }
             int newSquare;
             int currentSquare;
             int piece = 0;
             Move move = null;
 
             do {
-                currentSquare = UserInput.getValidSquareInput(friendlyColour);
-                piece = b.square[currentSquare];
+                currentSquare = UserInput.getValidSquareInput(friendlyColour, bm);
+                piece = bm.square[currentSquare];
                 System.out.println("Selected Piece: " + FENtoString(piece));
-                newSquare = UserInput.getValidMoveSquare(currentSquare, piece, friendlyColour, opponentColour);
+                System.out.println("test!");
+                System.out.println(bm.square.length);
+                newSquare = UserInput.getValidMoveSquare(currentSquare, piece, friendlyColour, opponentColour, bm);
 
                 if (newSquare != -1) {
-                    move = new Move(currentSquare, newSquare, b.square[newSquare]);
+                    move = new Move(currentSquare, newSquare, bm.square[newSquare]);
+
 
                     // If in check, ensure the move resolves the check
                     if (inCheck) {
@@ -524,16 +531,21 @@ public class Main {
 
 
 
-            b.updateBoard(move);
-            b.printBoard();
-            fen = b.boardToFen1DArray();
+            bm.updateBoard(move);
+            bm.printBoard();
+            fen = bm.boardToFen1DArray();
 
 
             // Only switch turns after checking for game over
 
 
         //THIS ALL HAPPENS AFTER THE PLAY SWITCHES USUALLY SO PROBALBY BROKEN TODO
-            List<Move> killinKingMoves = UserInput.generateMovesThatKillEnemyKing(opponentColour);
+
+            //simulate a turn switch:
+            int tempColour = friendlyColour;
+            friendlyColour = opponentColour;
+            opponentColour = tempColour;
+            List<Move> killinKingMoves = UserInput.generateMovesThatKillEnemyKing(opponentColour, bm);
 
             if (killinKingMoves.isEmpty()) {
                 inCheck = false;
@@ -543,14 +555,14 @@ public class Main {
 
             // Check if the opponent has any legal moves left
             if (inCheck) {
-                resolvingCheckMoves = UserInput.generateMovesThatResolveCheck(friendlyColour);
+                resolvingCheckMoves = UserInput.generateMovesThatResolveCheck(friendlyColour, bm);
 
                 if (resolvingCheckMoves.isEmpty()) {
                     System.out.println("CHECKMATE!");
                     return "CHECKMATE!";
                 }
             } else {
-                if (UserInput.generateLegalMoves(friendlyColour).isEmpty()) {
+                if (UserInput.generateLegalMoves(friendlyColour, bm).isEmpty()) {
                     System.out.println("STALEMATE!");
                     return "STALEMATE!";
                 }
@@ -560,5 +572,7 @@ public class Main {
 
     }
 
-
+    public static Board getB() {
+        return b;
+    }
 }

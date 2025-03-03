@@ -346,31 +346,6 @@ public class Board {
 
         return fen.toString();
     }
-
-
-    /*
-     String[] parts = fen.split(" ");
-        String rows = parts[0];  // The part before the space is the board layout
-
-        String[] ranks = rows.split("/");  // Split by rank (rows)
-
-        int squareIndex = 0;
-        // Start from the bottom-most rank (8th rank in chess notation)
-        for (int i = 7; i >= 0; i--) {
-            String rank = ranks[i];
-            for (char c : rank.toCharArray()) {
-                if (Character.isDigit(c)) {
-                    int emptySquares = Character.getNumericValue(c);
-                    for (int j = 0; j < emptySquares; j++) {
-                        square[squareIndex++] = Piece.NONE;  // Fill empty squares
-                    }
-                } else {
-                    int piece = getPieceFromChar(c);  // Get the piece type from char
-                    square[squareIndex++] = piece;
-                }
-            }
-        }
-     */
     // Get the character for a given piece value
     public char getCharFromPiece(int piece) {
         switch (piece & Piece.PIECE_TYPE_MASK) {  // Mask to get only the piece type, ignoring color

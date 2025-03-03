@@ -144,6 +144,7 @@ public class UserInput {
                     System.out.println("Unknown piece type.");
                     return false;
             }
+            b.enPassantSquare = -1;
 
             // Check if the target square is in the list of valid moves for the piece
             if (moves.isEmpty()) {
@@ -203,27 +204,6 @@ public class UserInput {
 
 
 
-
-    public static boolean isSquareAttacked(int square, int attackingColour) {
-        List<Move> opponentMoves = generateAllMoves(attackingColour);
-        for (Move move : opponentMoves) {
-            if (move.getTargetSquare() == square) {
-                return true; // The square is attacked
-            }
-        }
-        return false;
-    }
-
-        /*
-        for (Move move : moves) {
-            System.out.println("Legal move: " + convertSquareToInput(move.getStartSquare()) + " to " + convertSquareToInput(move.getTargetSquare()));
-        }
-
-         */
-
-
-
-
     public static List<Move> generateKnightMoves(int startSquare, int piece, int friendlyColour, int opponentColour) {
         moves = new ArrayList<>();
 
@@ -274,12 +254,9 @@ public class UserInput {
 
 
 
-    //TODO: MISSING EN PASSANT
     public static List<Move> generatePawnMoves(int startSquare, int piece, int friendlyColour, int opponentColour) {
         moves = new ArrayList<>();
-
         int direction = (Piece.isColour(piece, Piece.WHITE)) ? 1 : -1; // White moves up (1), Black moves down (-1)
-
 
         // Check for normal pawn move (1 square forward)
         int forwardSquare = startSquare + (direction * 8);
@@ -295,26 +272,62 @@ public class UserInput {
             int doubleForwardSquare = startSquare + (direction * 2 * 8);
             if (doubleForwardSquare >= 0 && doubleForwardSquare < 64) {
                 int pieceOnDoubleForwardSquare = b.square[doubleForwardSquare];
-                if (pieceOnDoubleForwardSquare == NONE) {
+                if (pieceOnDoubleForwardSquare == Piece.NONE) {
                     moves.add(new Move(startSquare, doubleForwardSquare, 0));
+
+                    // Set the enPassantSquare after a double forward move
+                    b.enPassantSquare = doubleForwardSquare - direction; // Set to the square adjacent to where the pawn would have been after 1 square move
                 }
             }
         }
 
         // Check for capturing moves (diagonal left and right)
         int[] captureOffsets = (direction == 1) ? new int[] {9, 7} : new int[] {-9, -7};
-
         for (int offset : captureOffsets) {
             int captureSquare = startSquare + offset;
             if (captureSquare >= 0 && captureSquare < 64) {
                 int pieceOnCaptureSquare = b.square[captureSquare];
-                // Check if the square is not empty and contains an opponent's piece
                 if (pieceOnCaptureSquare != Piece.NONE && Piece.isColour(pieceOnCaptureSquare, opponentColour)) {
                     moves.add(new Move(startSquare, captureSquare, pieceOnCaptureSquare));  // Capture opponent's piece
                 }
             }
         }
 
+        // EN PASSANT CHECK: if the opponent's pawn is diagonally adjacent and the enPassantSquare is set
+
+        /*
+        if (b.enPassantSquare != -1) {
+          //  System.out.println(b.enPassantSquare);
+
+            // Diagonal offsets for checking adjacent enemy pawns (left and right diagonals)
+            int[] diagonalOffsets = {-9, -7};  // -9 for left diagonal, -7 for right diagonal (for the white pawn direction)
+
+            for (int offset : diagonalOffsets) {
+                int adjacentSquare = startSquare + offset;
+
+                // Check if the adjacent square is within bounds
+                if (adjacentSquare >= 0 && adjacentSquare < 64) {
+                    int adjacentPiece = b.square[adjacentSquare];
+
+                    // Check if the adjacent piece is an opponent's pawn
+                    if (Piece.isType(adjacentPiece, Piece.PAWN) && Piece.isColour(adjacentPiece, opponentColour)) {
+                        System.out.println("Adjacent == Enemy Pawn!");
+
+                        // The square for en passant capture is directly behind the opponent's pawn
+                        int enPassantTarget = b.enPassantSquare; // Subtracting (+8 or -8) based on direction
+
+                        System.out.println("en passant target: " + enPassantTarget);
+                        if (enPassantTarget == adjacentSquare) {
+                            System.out.println("en passant is possible");
+                            moves.add(new Move(startSquare, b.enPassantSquare, adjacentPiece)); // En Passant move
+                        }
+                    }
+                }
+            }
+
+
+        }
+*/
 
         return moves;
     }
@@ -414,9 +427,6 @@ public class UserInput {
         int myKingSquare = b.getKingSquare(friendlyColour);
         int enemyKingSquare = b.getKingSquare(opponentColour);
 
-        System.out.println("/DEB/ Current player is at " + friendlyColour);
-        System.out.println("/DEB/ Enemy King at = " + convertSquareToInput(enemyKingSquare));
-        System.out.println("/DEB/ My King at = " + (myKingSquare));
         for (Move moveToVerify : pseudoLegalMoves) {
            // System.out.println("/DEB/ testing a pseudo legal move: ");
             //moveToVerify.printMove(); System.out.println();
@@ -469,13 +479,6 @@ public class UserInput {
         List<Move> kingCapturingMoves = new ArrayList<>();
         int enemyKingSquare = b.getKingSquare(opponentColour);
 
-        /*
-        System.out.println("/DEB/ Current player is at " + friendlyColour);
-        System.out.println("/DEB/ Enemy King at = " + convertSquareToInput(enemyKingSquare));
-        System.out.println("/DEB/ Total pseudo-legal moves: " + pseudoLegalMoves.size());
-
-
-         */
         for (Move moveToVerify : pseudoLegalMoves) {
             b.updateBoard(moveToVerify);
             List<Move> opponentResponses  = generateAllMoves(opponentColour);

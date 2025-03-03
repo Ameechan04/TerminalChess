@@ -15,6 +15,7 @@ public class Piece {
     static final public int WHITE = 8;
     static final public int BLACK = 16;
 
+    public static final int PIECE_TYPE_MASK = 0x7;  // Mask to extract the last 3 bits (piece type)
 
     public static int[] directionOffsets = { 8, -8, -1, 1, 7, -7, 9, -9};
     public static int[][] numSquaresToEdge;
